@@ -12,6 +12,20 @@ from lib.core.config import VIBE_DATA_DIR
 from lib.utils.geometry import rotation_matrix_to_angle_axis, rot6d_to_rotmat
 from lib.models.smpl import SMPL, SMPL_MODEL_DIR, H36M_TO_J14, SMPL_MEAN_PARAMS
 
+# function for calculating inverse transform
+def transform_trans(transform_mat, trans):
+    trans = torch.cat((trans, torch.ones_like(trans[..., [0]])), dim=-1)[..., None, :]
+    while len(transform_mat.shape) < len(trans.shape):
+        transform_mat = transform_mat.unsqueeze(-3)
+    trans_new = torch.matmul(trans, transform_mat.transpose(-2, -1))[..., 0, :3]
+    return trans_new
+
+def inverse_transform(transform_mat):
+    transform_inv = torch.zeros_like(transform_mat)
+    transform_inv[..., :3, :3] = transform_mat[..., :3, :3].transpose(-2, -1)
+    transform_inv[..., :3, 3] = -torch.matmul(transform_mat[..., :3, 3].unsqueeze(-2), transform_mat[..., :3, :3]).squeeze(-2)
+    transform_inv[..., 3, 3] = 1.0
+    return transform_inv
 
 class Bottleneck(nn.Module):
     """
@@ -283,7 +297,14 @@ class Regressor(nn.Module):
 
         pose = rotation_matrix_to_angle_axis(pred_rotmat.reshape(-1, 3, 3)).reshape(-1, 72)
 
+        # add root translation
+        num_fr = pred_vertices.shape[0]
+        cam_pose = torch.eye(4).repeat((num_fr, 1, 1)).float().to(pred_vertices.device)
+        cam_pose_inv = inverse_transform(cam_pose)
+        root_trans_world = transform_trans(cam_pose_inv, pred_cam)
+
         output = [{
+            'root_trans': root_trans_world,
             'theta'  : torch.cat([pred_cam, pose, pred_shape], dim=1),
             'verts'  : pred_vertices,
             'kp_2d'  : pred_keypoints_2d,

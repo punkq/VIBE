@@ -1,3 +1,30 @@
+# Mask lower box of human for VIBE
+
+1. Download idea 400 data and put it in `./idea400_test_set`
+
+2. Test one video with specific MASK_RATIO
+```bash
+MASK_RATIO=0 python demo_allframe.py --vid_file idea400_test_set/subset_0000_Cheer_Up_and_sitting_at_the_same_time.mp4 --output_folder output/
+```
+
+3. Demo a video with name `SEQ_NAME` on test set with mask ratio 0, 0.3, 0.5 & 0.7 and compare in one mp4 file
+```bash
+conda activate vibe
+export SEQ_NAME=subset_0002_Simultaneously_Command_and_sitting
+CUDA_VISIBLE_DEVICES=0 source script_vis.sh
+```
+
+4. Test on all video in the path, visualize them and compare in mp4 files
+```bash
+conda activate vibe
+CUDA_VISIBLE_DEVICES=0 source script_directory_vis.sh
+```
+
+5. Process all video data with specific MASK_RATIO and save their smpl pkl in parallel 
+```bash
+CUDA_VISIBLE_DEVICES=1 MASK_RATIO=0.3 SEED=2024 python main_script.py
+```
+
 # VIBE: Video Inference for Human Body Pose and Shape Estimation [CVPR-2020]
 [![report](https://img.shields.io/badge/arxiv-report-red)](https://arxiv.org/abs/1912.05656) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1dFfwxZ52MN86FA6uFNypMEdFShd2euQA) [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/vibe-video-inference-for-human-body-pose-and/3d-human-pose-estimation-on-3dpw)](https://paperswithcode.com/sota/3d-human-pose-estimation-on-3dpw?p=vibe-video-inference-for-human-body-pose-and)
 

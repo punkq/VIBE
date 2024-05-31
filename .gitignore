@@ -4,4 +4,12 @@ __pycache__/
 vibe-env/
 output/
 *.mp4
+*.jpg
+*.out
 results
+
+.cache/
+idea400_test_set*
+output/*
+vis/*
+

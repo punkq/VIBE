@@ -170,6 +170,7 @@ class VIBE_Demo(nn.Module):
         smpl_output = self.regressor(feature, J_regressor=J_regressor)
 
         for s in smpl_output:
+            s['root_trans'] = s['root_trans'].reshape(batch_size, seqlen, -1)
             s['theta'] = s['theta'].reshape(batch_size, seqlen, -1)
             s['verts'] = s['verts'].reshape(batch_size, seqlen, -1, 3)
             s['kp_2d'] = s['kp_2d'].reshape(batch_size, seqlen, -1, 2)

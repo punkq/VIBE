@@ -182,7 +182,16 @@ def trim_videos(filename, start_time, end_time, output_filename):
 
 def video_to_images(vid_file, img_folder=None, return_info=False):
     if img_folder is None:
-        img_folder = osp.join('/tmp', osp.basename(vid_file).replace('.', '_'))
+        VIBE_PWD = os.getcwd()
+        img_folder = osp.join(VIBE_PWD, '.cache', osp.basename(vid_file).replace('.', '_'))
+
+    # if the images are already extracted, return the folder
+    if osp.exists(img_folder):
+        print(f'Images already extracted in \"{img_folder}\"')
+        if return_info:
+            return img_folder, len(os.listdir(img_folder)), cv2.imread(osp.join(img_folder, '000001.png')).shape
+        else:
+            return img_folder
 
     os.makedirs(img_folder, exist_ok=True)
 

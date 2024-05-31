@@ -17,6 +17,7 @@
 import os
 import cv2
 import torch
+import sys
 
 import random
 import numpy as np
@@ -85,9 +86,12 @@ def gen_trans_from_patch_cv(c_x, c_y, src_width, src_height, dst_width, dst_heig
 
     return trans
 
-def generate_patch_image_cv(cvimg, c_x, c_y, bb_width, bb_height, patch_width, patch_height, do_flip, scale, rot):
+def generate_patch_image_cv(cvimg, c_x, c_y, bb_width, bb_height, patch_width, patch_height, do_flip, scale, rot, vis=False):
     img = cvimg.copy()
     img_height, img_width, img_channels = img.shape
+
+    sys.path.append(os.getcwd())
+    from main_script import MASK_RATIO
 
     if do_flip:
         img = img[:, ::-1, :]
@@ -97,6 +101,32 @@ def generate_patch_image_cv(cvimg, c_x, c_y, bb_width, bb_height, patch_width, p
 
     img_patch = cv2.warpAffine(img, trans, (int(patch_width), int(patch_height)),
                                flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+    h, w, c = img_patch.shape
+
+    if vis:
+        ## save img_patch to file with a hash name
+        vis_dir = 'vis/vis_box/'
+        hash_name = hash(str(c_x) + str(c_y) + str(bb_width) + str(bb_height) + str(patch_width) + str(patch_height) + str(do_flip) + str(scale) + str(rot) + str(img.shape))
+        hash_name = str(hash_name).replace('-', 'N')[:5]
+
+        cv2.imwrite(
+            os.path.join(vis_dir, f'{hash_name}_patch.jpg'), 
+            cv2.cvtColor(img_patch, cv2.COLOR_RGB2BGR)
+        )
+
+    # MASK lower part of the image    
+    img_patch[int(h * (1-MASK_RATIO)):, :, :] = 0
+
+    if vis:
+        ## save img_patch to file with a hash name
+        vis_dir = 'vis/vis_box/'
+        hash_name = hash(str(c_x) + str(c_y) + str(bb_width) + str(bb_height) + str(patch_width) + str(patch_height) + str(do_flip) + str(scale) + str(rot) + str(img.shape))
+        hash_name = str(hash_name).replace('-', 'N')[:5]
+
+        cv2.imwrite(
+            os.path.join(vis_dir, f'{hash_name}_masked_patch.jpg'), 
+            cv2.cvtColor(img_patch, cv2.COLOR_RGB2BGR)
+        )
 
     return img_patch, trans
 
